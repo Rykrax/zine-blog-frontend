@@ -5,6 +5,10 @@ import Login from "../pages/Auth/Login.jsx";
 import Register from "../pages/Auth/Register.jsx";
 import Profile from "../pages/User/Profile.jsx";
 import HomePage from "../pages/Home/Home.jsx";
+import MainLayout from "../layouts/MainLayout.jsx";
+import CreatePost from "../pages/Post/CreatePost.jsx";
+import DetailPost from "../pages/Post/DetailPost.jsx";
+import ChangePassword from "../pages/Auth/ChangePassword.jsx";
 
 const router = createBrowserRouter([
 
@@ -29,22 +33,30 @@ const router = createBrowserRouter([
     {
         element: <ProtectedRoute />,
         children: [
-            {
-                path: "/",
-                element: <HomePage />,
-            },
-            {
-                path: "/profile",
-                element: <Profile />
-            },
-            {
-                path: "/home",
-                element: <HomePage />
-            }
             // {
-            //     path: '/create-post',
-            //     element: <WritePost />,
+            //     path: "/",
+            //     element: <HomePage />,
             // },
+            // {
+            //     path: "/profile",
+            //     element: <Profile />
+            // },
+            // {
+            //     path: "/home",
+            //     element: <HomePage />
+            // }
+            {
+                element: <MainLayout />,
+                children: [
+                    { path: "/", element: <HomePage /> },
+                    { path: "/home", element: <HomePage /> },
+                    { path: "/profile", element: <Profile /> },
+                    { path: "/change-password", element: <ChangePassword /> },
+                    { path: "/create-post", element: <CreatePost /> },
+                    { path: "post/:slug", element: <DetailPost />, }
+                    // { path: "/create-post", element: <WritePost /> },
+                ]
+            }
         ],
     },
 ])

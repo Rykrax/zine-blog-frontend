@@ -12,6 +12,12 @@ instance.defaults.timeout = 1000 * 60 * 10;
 // Add a request interceptor
 instance.interceptors.request.use((config) => {
     // Do something before request is sent
+    if (config.method === 'get') {
+        config.params = {
+            ...config.params,
+            _t: Date.now()
+        };
+    }
     return config;
 }, (error) => {
     // Do something with request error
