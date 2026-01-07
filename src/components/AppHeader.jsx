@@ -4,7 +4,9 @@ import {
     LogoutOutlined,
     LoginOutlined,
     LockOutlined,
-    CaretDownOutlined
+    CaretDownOutlined,
+    DashboardOutlined,
+    KeyOutlined
 } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
@@ -39,10 +41,20 @@ const AppHeader = () => {
                 icon: <UserOutlined />,
                 onClick: () => navigate("/profile")
             },
+            ...(user?.role === 'admin'
+                ? [
+                    {
+                        key: "admin",
+                        label: "Trang quản trị",
+                        icon: <LockOutlined />,
+                        onClick: () => navigate("/admin")
+                    }
+                ]
+                : []),
             {
                 key: "changePassword",
                 label: "Đổi mật khẩu",
-                icon: <LockOutlined />,
+                icon: <KeyOutlined />,
                 onClick: () => navigate("/change-password")
             },
             {
@@ -74,7 +86,8 @@ const AppHeader = () => {
                 <Link to="/" style={{ textDecoration: "none" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <img
-                            src="/img/logo.png"
+                            // src="/img/logo.png"
+                            src="/vite.svg"
                             alt="logo"
                             style={{ height: 36, display: "block" }}
                         />

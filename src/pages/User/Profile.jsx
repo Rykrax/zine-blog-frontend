@@ -27,7 +27,8 @@ import {
     HeartOutlined,
     FileTextOutlined,
     PlusOutlined,
-    EditOutlined
+    EditOutlined,
+    HeartFilled
 } from "@ant-design/icons";
 import { useAuth } from "../../providers/AuthProvider";
 import { userAPI } from "../../routes/user.api";
@@ -39,9 +40,9 @@ const { Title, Text, Paragraph } = Typography;
 const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString("vi-VN");
 
-const IconText = ({ icon, text }) => (
+const IconText = ({ icon, text, color }) => (
     <Space>
-        {React.createElement(icon)}
+        {React.createElement(icon, { style: { color } })}
         {text}
     </Space>
 );
@@ -171,7 +172,13 @@ function Profile() {
                     <Divider />
                     <Row gutter={16} style={{ textAlign: "center" }}>
                         <Col span={12}><Statistic title="Bài viết" value={total} prefix={<FileTextOutlined />} /></Col>
-                        <Col span={12}><Statistic title="Yêu thích" value={profile.saved_posts?.length || 0} prefix={<HeartOutlined />} /></Col>
+                        <Col span={12}>
+                            <Statistic
+                                title="Yêu thích"
+                                value={profile.saved_posts?.length || 0}
+                                prefix={<HeartOutlined />}
+                            />
+                        </Col>
                     </Row>
                 </Card>
             </Col>
@@ -206,7 +213,12 @@ function Profile() {
                                     key={item._id}
                                     actions={[
                                         <IconText icon={EyeOutlined} text={item.stats?.views || 0} key="views" />,
-                                        <IconText icon={LikeOutlined} text={item.stats?.likes || 0} key="likes" />,
+                                        <IconText
+                                            icon={(item.stats?.likes || 0) > 0 ? HeartFilled : HeartOutlined}
+                                            text={item.stats?.likes || 0}
+                                            key="likes"
+                                            color={(item.stats?.likes || 0) > 0 ? "red" : undefined}
+                                        />,
                                         <IconText icon={MessageOutlined} text={item.stats?.comment_count || 0} key="comments" />,
                                     ]}
                                     extra={item.thumbnail && <img width={150} alt="thumbnail" src={item.thumbnail} style={{ borderRadius: 8, objectFit: "cover" }} />}
@@ -245,7 +257,12 @@ function Profile() {
                                     key={item._id}
                                     actions={typeof item === 'object' ? [
                                         <IconText icon={EyeOutlined} text={item.stats?.views || 0} key="views" />,
-                                        <IconText icon={LikeOutlined} text={item.stats?.likes || 0} key="likes" />,
+                                        <IconText
+                                            icon={(item.stats?.likes || 0) > 0 ? HeartFilled : HeartOutlined}
+                                            text={item.stats?.likes || 0}
+                                            key="likes"
+                                            color={(item.stats?.likes || 0) > 0 ? "red" : undefined}
+                                        />,
                                         <IconText icon={MessageOutlined} text={item.stats?.comment_count || 0} key="comments" />,
                                     ] : []}
                                     extra={item.thumbnail && <img width={150} alt="thumbnail" src={item.thumbnail} style={{ borderRadius: 8, objectFit: "cover" }} />}

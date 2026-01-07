@@ -12,6 +12,7 @@ import {
 } from "antd";
 import {
     EyeOutlined,
+    HeartFilled,
     HeartOutlined,
     LikeOutlined,
     MessageOutlined,
@@ -38,6 +39,7 @@ const HomePage = () => {
         fetchPosts();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit]);
+    console.log(posts);
 
     const fetchPosts = async () => {
         setLoading(true);
@@ -163,7 +165,13 @@ const HomePage = () => {
                                             <EyeOutlined /> {post.stats?.views || 0}
                                         </span>
                                         <span>
-                                            <HeartOutlined /> {post.stats?.likes || 0}
+                                            {(post.stats?.likes || 0) > 0 ? (
+                                                <HeartFilled style={{ color: "red" }} />
+                                            ) : (
+                                                <HeartOutlined />
+                                            )}
+                                            {" "}
+                                            {post.stats?.likes || 0}
                                         </span>
                                         <span>
                                             <MessageOutlined />{" "}
