@@ -14,6 +14,11 @@ const changePasswordApi = (oldPassword, newPassword) => {
     return instance.put(URL_API, data);
 }
 
+const updateProfileApi = (data) => {
+    const URL_API = import.meta.env.VITE_BASE_API + `/user/update-profile`;
+    return instance.put(URL_API, data);
+}
+
 const savePostApi = async (postId) => {
     const URL_API = import.meta.env.VITE_BASE_API + `/user/save-post/`;
     const data = {
@@ -25,5 +30,6 @@ const savePostApi = async (postId) => {
 export const userAPI = {
     getUser,
     changePasswordApi,
+    updateProfileApi,
     savePostApi
 }

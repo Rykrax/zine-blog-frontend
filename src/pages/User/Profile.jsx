@@ -21,9 +21,7 @@ import {
     MailOutlined,
     CalendarOutlined,
     EyeOutlined,
-    LikeOutlined,
     MessageOutlined,
-    SaveOutlined,
     HeartOutlined,
     FileTextOutlined,
     PlusOutlined,
@@ -162,7 +160,7 @@ function Profile() {
                             <Button
                                 type="primary"
                                 icon={<EditOutlined />}
-                                onClick={() => navigate("/profile/edit")}
+                                onClick={() => navigate("/update-profile")}
                             >
                                 Cập nhật thông tin
                             </Button>

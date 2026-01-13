@@ -15,6 +15,7 @@ import { AdminPosts } from "../pages/Admin/AdminPosts.jsx";
 import { AdminSettings } from "../pages/Admin/AdminSettings.jsx";
 import AdminLayout from "../layouts/AdminLayout.jsx";
 import AccessDenied from "../pages/AccessDenied.jsx";
+import UpdateProfile from "@/pages/User/UpdateProfile";
 
 const router = createBrowserRouter([
     // Access Denied
@@ -49,6 +50,7 @@ const router = createBrowserRouter([
                     { path: "/", element: <HomePage /> },
                     { path: "/home", element: <HomePage /> },
                     { path: "/profile", element: <Profile /> },
+                    { path: "/update-profile", element: <UpdateProfile /> },
                     { path: "/change-password", element: <ChangePassword /> },
                     { path: "/create-post", element: <CreatePost /> },
                     { path: "post/:slug", element: <DetailPost />, }

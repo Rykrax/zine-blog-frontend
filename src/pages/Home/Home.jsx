@@ -19,8 +19,8 @@ import {
     UserOutlined
 } from "@ant-design/icons";
 
-import AppPagination from "../../components/Pagination";
-import { displayPage } from "../../utils/pageDetail";
+import AppPagination from "@/components/Pagination";
+import { displayPage } from "@/utils/pageDetail";
 
 const { Title, Text } = Typography;
 
