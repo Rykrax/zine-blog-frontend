@@ -337,47 +337,92 @@ const PostDetail = () => {
                                 </div>
                             </Card>
 
-                            <List
-                                className="comment-list"
-                                loading={commentLoading}
-                                itemLayout="horizontal"
-                                dataSource={comments}
-                                renderItem={(item) => (
-                                    <div style={{ display: 'flex', marginBottom: 20 }}>
-                                        <Avatar src={item.user?.avatar} size={40} style={{ marginRight: 12, flexShrink: 0 }} />
+                            {!commentLoading && comments.length === 0 ? (
+                                <div
+                                    style={{
+                                        textAlign: "center",
+                                        color: "#8c8c8c",
+                                        marginTop: 24,
+                                        fontSize: 14
+                                    }}
+                                >
+                                    Chưa có bình luận nào. Hãy là người đầu tiên bình luận
+                                </div>
+                            ) : (
+                                <List
+                                    className="comment-list"
+                                    loading={commentLoading}
+                                    itemLayout="horizontal"
+                                    dataSource={comments}
+                                    renderItem={(item) => (
+                                        <div style={{ display: 'flex', marginBottom: 20 }}>
+                                            <Avatar
+                                                src={item.user?.avatar}
+                                                size={40}
+                                                style={{ marginRight: 12, flexShrink: 0 }}
+                                            />
 
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{
-                                                backgroundColor: '#f0f2f5',
-                                                padding: '8px 12px',
-                                                borderRadius: '18px',
-                                                display: 'inline-block',
-                                                maxWidth: '100%',
-                                                position: 'relative'
-                                            }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <Text strong style={{ fontSize: '14px' }}>{item.user?.username}</Text>
-                                                </div>
-                                                <div style={{ fontSize: '14px', marginTop: '2px', wordBreak: 'break-word' }}>
-                                                    {item.content}
-                                                </div>
-                                            </div>
-
-                                            <div style={{ marginLeft: 12, marginTop: 4, display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                                <Text type="secondary" strong style={{ cursor: 'pointer', fontSize: '12px' }}>Thích</Text>
-                                                <Text type="secondary" strong style={{ cursor: 'pointer', fontSize: '12px' }}>Trả lời</Text>
-                                                <Tooltip title={new Date(item.createdAt).toLocaleString()}>
-                                                    <Text type="secondary" style={{ fontSize: '12px' }}>
-                                                        {formatDistanceToNow(item.createdAt)}
+                                            <div style={{ flex: 1 }}>
+                                                <div
+                                                    style={{
+                                                        backgroundColor: '#f0f2f5',
+                                                        padding: '8px 12px',
+                                                        borderRadius: '18px',
+                                                        display: 'inline-block',
+                                                        maxWidth: '100%',
+                                                        position: 'relative'
+                                                    }}
+                                                >
+                                                    <Text strong style={{ fontSize: '14px' }}>
+                                                        {item.user?.username || "Người dùng"}
                                                     </Text>
-                                                </Tooltip>
 
-                                                <Button type="text" size="small" icon={<MoreOutlined />} style={{ height: '20px', width: '20px' }} />
+                                                    <div
+                                                        style={{
+                                                            fontSize: '14px',
+                                                            marginTop: '2px',
+                                                            wordBreak: 'break-word'
+                                                        }}
+                                                    >
+                                                        {item.content}
+                                                    </div>
+                                                </div>
+
+                                                <div
+                                                    style={{
+                                                        marginLeft: 12,
+                                                        marginTop: 4,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '15px'
+                                                    }}
+                                                >
+                                                    <Text type="secondary" strong style={{ cursor: 'pointer', fontSize: '12px' }}>
+                                                        Thích
+                                                    </Text>
+                                                    <Text type="secondary" strong style={{ cursor: 'pointer', fontSize: '12px' }}>
+                                                        Trả lời
+                                                    </Text>
+
+                                                    <Tooltip title={new Date(item.createdAt).toLocaleString()}>
+                                                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                            {formatDistanceToNow(item.createdAt)}
+                                                        </Text>
+                                                    </Tooltip>
+
+                                                    <Button
+                                                        type="text"
+                                                        size="small"
+                                                        icon={<MoreOutlined />}
+                                                        style={{ height: '20px', width: '20px' }}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )}
-                            />
+                                    )}
+                                />
+                            )}
+
 
                             <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
                                 <AppPagination
