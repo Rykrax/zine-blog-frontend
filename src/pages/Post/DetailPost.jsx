@@ -34,6 +34,7 @@ import AppPagination from "@/components/Pagination";
 import { formatDistanceToNowStrict } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useAuth } from "@/providers/AuthProvider.jsx";
+import { commentAPI } from "@/routes/comment.api.jsx";
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
 
@@ -68,7 +69,7 @@ const PostDetail = () => {
         try {
             setCommentSubmitting(true);
 
-            await postAPI.createComment(slug, {
+            await commentAPI.createComment(slug, {
                 content: commentContent
             });
 
@@ -76,12 +77,12 @@ const PostDetail = () => {
 
             setCommentContent("");
 
-            // reload lại comment trang hiện tại
             fetchComments();
 
-        } catch (error) {
+        } catch (err) {
+            console.log("uehuiewh", err);
             message.error(
-                error.response?.data?.message || "Bạn cần đăng nhập để bình luận"
+                err.response?.data?.message || "Bạn cần đăng nhập để bình luận"
             );
         } finally {
             setCommentSubmitting(false);
@@ -161,7 +162,7 @@ const PostDetail = () => {
             setCommentLoading(true);
 
             const res = await postAPI.getCommentByPost(slug, { page, limit });
-
+            console.log(res);
             setComments(res.data || []);
             setCommentTotal(res.pagination?.total || 0);
         } catch (error) {
@@ -274,7 +275,7 @@ const PostDetail = () => {
                         <div style={{ marginTop: 25 }}>
                             <Title level={4}>
                                 <MessageOutlined style={{ marginRight: 8 }} />
-                                Bình luận ({post.stats?.comment_count})
+                                Bình luận ({commentTotal})
                             </Title>
                             <Card
                                 style={{
@@ -379,7 +380,10 @@ const PostDetail = () => {
                             />
 
                             <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
-                                <AppPagination total={commentTotal} />
+                                <AppPagination
+                                    total={commentTotal}
+                                    defaultPageSize={limit}
+                                />
                             </div>
                         </div>
                     </div>
@@ -411,7 +415,7 @@ const PostDetail = () => {
                                 <Col span={12}>
                                     <Statistic
                                         title="Bình luận"
-                                        value={post.stats?.comment_count || 0}
+                                        value={commentTotal || 0}
                                         prefix={<MessageOutlined />}
                                     />
                                 </Col>

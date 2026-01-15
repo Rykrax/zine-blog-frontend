@@ -14,14 +14,12 @@ import {
     EyeOutlined,
     HeartFilled,
     HeartOutlined,
-    LikeOutlined,
     MessageOutlined,
     UserOutlined
 } from "@ant-design/icons";
 
 import AppPagination from "@/components/Pagination";
 import { displayPage } from "@/utils/pageDetail";
-import instance from "@/utils/authorizedAxios";
 import { postAPI } from "@/routes/post.api";
 
 const { Title, Text } = Typography;
