@@ -5,12 +5,31 @@ const createPost = async (data) => {
     return instance.post(URL_API, data);
 }
 
+const getAllPost = async (params = {}) => {
+    const URL_API = import.meta.env.VITE_BASE_API + `/post/posts/`;
+    return instance.get(URL_API, { params });
+}
+
 const getPosts = async (user_id) => {
     const URL_API = import.meta.env.VITE_BASE_API + `/post/posts/${user_id}`;
     return instance.get(URL_API);
 }
 
+const getPostDetail = async (fullSlug) => {
+    const URL_API = import.meta.env.VITE_BASE_API + `/post/posts/${fullSlug}`;
+    return instance.get(URL_API);
+}
+
+const getCommentByPost = async (fullSlug, params = {}) => {
+    const URL_API = import.meta.env.VITE_BASE_API + `/post/posts/${fullSlug}/comment`;
+    return instance.get(URL_API, { params });
+}
+
+
 export const postAPI = {
     createPost,
+    getAllPost,
     getPosts,
+    getPostDetail,
+    getCommentByPost
 }

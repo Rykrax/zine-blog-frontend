@@ -21,6 +21,8 @@ import {
 
 import AppPagination from "@/components/Pagination";
 import { displayPage } from "@/utils/pageDetail";
+import instance from "@/utils/authorizedAxios";
+import { postAPI } from "@/routes/post.api";
 
 const { Title, Text } = Typography;
 
@@ -39,20 +41,15 @@ const HomePage = () => {
         fetchPosts();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit]);
-    console.log(posts);
+    // console.log(posts);
 
     const fetchPosts = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(
-                "http://localhost:8080/api/v1/post/posts",
-                {
-                    params: { page, limit }
-                }
-            );
-
-            setPosts(res.data.data || []);
-            setTotal(res.data.pagination?.total || 0);
+            const res = await postAPI.getAllPost({ page, limit });
+            console.log(res);
+            setPosts(res.data || []);
+            setTotal(res.pagination?.total || 0);
         } catch (error) {
             console.error("Lỗi khi lấy bài viết:", error);
         } finally {
@@ -60,8 +57,8 @@ const HomePage = () => {
         }
     };
 
-    const handleCardClick = (slug) => {
-        navigate(`/post/${slug}`);
+    const handleCardClick = (fullSlug) => {
+        navigate(`/post/${fullSlug}`);
     };
 
     if (loading) {
@@ -83,7 +80,7 @@ const HomePage = () => {
                     <Col span={24} key={post._id}>
                         <Card
                             hoverable
-                            onClick={() => handleCardClick(post.slug)}
+                            onClick={() => handleCardClick(post.fullSlug)}
                             style={{ borderRadius: 8, cursor: "pointer" }}
                             bodyStyle={{ padding: 20 }}
                         >

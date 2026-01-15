@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import axios from "axios";
+import { useParams, useSearchParams } from "react-router-dom";
 import {
     Layout,
     Typography,
@@ -13,7 +12,9 @@ import {
     Row,
     Col,
     Statistic,
-    message
+    message,
+    List,
+    Tooltip
 } from "antd";
 import {
     UserOutlined,
@@ -22,22 +23,82 @@ import {
     ShareAltOutlined,
     HeartOutlined,
     HeartFilled,
-    MessageOutlined
+    MessageOutlined,
+    MoreOutlined
 } from "@ant-design/icons";
 
 import { userAPI } from "../../routes/user.api.jsx";
 import { userApi } from "../../routes/api.jsx";
-
+import { postAPI } from "@/routes/post.api.jsx";
+import AppPagination from "@/components/Pagination";
+import { formatDistanceToNowStrict } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import { useAuth } from "@/providers/AuthProvider.jsx";
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
 
 const PostDetail = () => {
+    const { user } = useAuth();
     const { slug } = useParams();
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
+
+    const [commentTotal, setCommentTotal] = useState(0);
+
+    const [comments, setComments] = useState([]);
+    const [commentLoading, setCommentLoading] = useState(false);
+
+    const [commentContent, setCommentContent] = useState("");
+    const [commentSubmitting, setCommentSubmitting] = useState(false);
+
+    const [searchParams] = useSearchParams();
+
+    const page = Number(searchParams.get("page")) || 1;
+    const limit = Number(searchParams.get("limit")) || 5;
+
+    const handleSubmitComment = async () => {
+        if (!commentContent.trim()) {
+            message.warning("Vui lòng nhập nội dung bình luận");
+            return;
+        }
+
+        try {
+            setCommentSubmitting(true);
+
+            await postAPI.createComment(slug, {
+                content: commentContent
+            });
+
+            message.success("Đã gửi bình luận");
+
+            setCommentContent("");
+
+            // reload lại comment trang hiện tại
+            fetchComments();
+
+        } catch (error) {
+            message.error(
+                error.response?.data?.message || "Bạn cần đăng nhập để bình luận"
+            );
+        } finally {
+            setCommentSubmitting(false);
+        }
+    };
+
+
+    const formatDistanceToNow = (date) => {
+        try {
+            return formatDistanceToNowStrict(new Date(date), {
+                addSuffix: false,
+                locale: vi
+            }).replace('trước', '').trim();
+        } catch (e) {
+            return "vừa xong";
+        }
+    };
 
     const formatDate = (dateString) => {
         if (!dateString) return "";
@@ -93,12 +154,29 @@ const PostDetail = () => {
         }
     };
 
+    const fetchComments = async () => {
+        if (!slug) return;
+
+        try {
+            setCommentLoading(true);
+
+            const res = await postAPI.getCommentByPost(slug, { page, limit });
+
+            setComments(res.data || []);
+            setCommentTotal(res.pagination?.total || 0);
+        } catch (error) {
+            message.error("Không thể tải bình luận");
+        } finally {
+            setCommentLoading(false);
+        }
+    };
+
     useEffect(() => {
         const fetchPostDetail = async () => {
             if (!slug) return;
             try {
                 setLoading(true);
-                const res = await axios.get(`http://localhost:8080/api/v1/post/posts/${slug}`);
+                const res = await postAPI.getPostDetail(slug);
 
                 const postData = res.data.data || res.data;
                 setPost(postData);
@@ -117,6 +195,10 @@ const PostDetail = () => {
 
         fetchPostDetail();
     }, [slug]);
+
+    useEffect(() => {
+        fetchComments();
+    }, [slug, page, limit]);
 
     if (loading) {
         return (
@@ -189,13 +271,117 @@ const PostDetail = () => {
                     <Divider style={{ margin: "40px 0" }} />
 
                     <div style={{ marginTop: 25 }}>
-                        <Title level={4}>
-                            <MessageOutlined style={{ marginRight: 8 }} />
-                            Bình luận ({post.stats?.comment_count || 0})
-                        </Title>
-                        <Card style={{ background: '#f5f5f5', textAlign: 'center', padding: 30, border: 'none' }}>
-                            <Text type="secondary">Chức năng bình luận đang được phát triển...</Text>
-                        </Card>
+                        <div style={{ marginTop: 25 }}>
+                            <Title level={4}>
+                                <MessageOutlined style={{ marginRight: 8 }} />
+                                Bình luận ({post.stats?.comment_count})
+                            </Title>
+                            <Card
+                                style={{
+                                    marginBottom: 24,
+                                    borderRadius: 12,
+                                    border: '1px solid #f0f0f0',
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                }}
+                                bodyStyle={{ padding: '12px' }}
+                            >
+                                <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                                    <Avatar src={user.avatar} icon={<UserOutlined />} style={{ flexShrink: 0 }} />
+
+                                    <div style={{
+                                        flex: 1,
+                                        backgroundColor: "#f0f2f5",
+                                        borderRadius: "20px",
+                                        padding: "4px 12px",
+                                        display: "flex",
+                                        flexDirection: "column"
+                                    }}>
+                                        <textarea
+                                            value={commentContent}
+                                            onChange={(e) => setCommentContent(e.target.value)}
+                                            placeholder={`Bình luận dưới tên ${user.username || 'người dùng'}`}
+                                            rows={1}
+                                            style={{
+                                                width: "100%",
+                                                resize: "none",
+                                                padding: "8px 0",
+                                                backgroundColor: "transparent",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "14px",
+                                                lineHeight: "20px",
+                                                color: "#000"
+                                            }}
+                                        />
+
+                                    </div>
+
+                                    <div style={{ alignSelf: "center" }}>
+                                        <Button
+                                            type="primary"
+                                            onClick={handleSubmitComment}
+                                            loading={commentSubmitting}
+                                            disabled={!commentContent.trim()}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                padding: '4px 16px'
+                                            }}
+                                        >
+                                            Gửi
+                                        </Button>
+                                    </div>
+
+                                </div>
+                            </Card>
+
+                            <List
+                                className="comment-list"
+                                loading={commentLoading}
+                                itemLayout="horizontal"
+                                dataSource={comments}
+                                renderItem={(item) => (
+                                    <div style={{ display: 'flex', marginBottom: 20 }}>
+                                        <Avatar src={item.user?.avatar} size={40} style={{ marginRight: 12, flexShrink: 0 }} />
+
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{
+                                                backgroundColor: '#f0f2f5',
+                                                padding: '8px 12px',
+                                                borderRadius: '18px',
+                                                display: 'inline-block',
+                                                maxWidth: '100%',
+                                                position: 'relative'
+                                            }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <Text strong style={{ fontSize: '14px' }}>{item.user?.username}</Text>
+                                                </div>
+                                                <div style={{ fontSize: '14px', marginTop: '2px', wordBreak: 'break-word' }}>
+                                                    {item.content}
+                                                </div>
+                                            </div>
+
+                                            <div style={{ marginLeft: 12, marginTop: 4, display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                                <Text type="secondary" strong style={{ cursor: 'pointer', fontSize: '12px' }}>Thích</Text>
+                                                <Text type="secondary" strong style={{ cursor: 'pointer', fontSize: '12px' }}>Trả lời</Text>
+                                                <Tooltip title={new Date(item.createdAt).toLocaleString()}>
+                                                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                        {formatDistanceToNow(item.createdAt)}
+                                                    </Text>
+                                                </Tooltip>
+
+                                                <Button type="text" size="small" icon={<MoreOutlined />} style={{ height: '20px', width: '20px' }} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            />
+
+                            <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
+                                <AppPagination total={commentTotal} />
+                            </div>
+                        </div>
                     </div>
                 </Col>
 
