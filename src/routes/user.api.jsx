@@ -1,12 +1,12 @@
 import instance from '../utils/authorizedAxios.jsx'
 
 const getUser = (_id) => {
-    const URL_API = import.meta.env.VITE_BASE_API + `/users/${_id}`;
+    const URL_API = `/users/${_id}`;
     return instance.get(URL_API);
 }
 
 const changePasswordApi = (oldPassword, newPassword) => {
-    const URL_API = import.meta.env.VITE_BASE_API + `/users/change-password`;
+    const URL_API = `/users/change-password`;
     const data = {
         oldPassword,
         newPassword
@@ -15,12 +15,12 @@ const changePasswordApi = (oldPassword, newPassword) => {
 }
 
 const updateProfileApi = (data) => {
-    const URL_API = import.meta.env.VITE_BASE_API + `/users/update-profile`;
+    const URL_API = `/users/update-profile`;
     return instance.put(URL_API, data);
 }
 
 const savePostApi = async (postId) => {
-    const URL_API = import.meta.env.VITE_BASE_API + `/users/save-post/`;
+    const URL_API = `/users/save-post/`;
     const data = {
         postId
     }

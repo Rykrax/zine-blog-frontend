@@ -3,7 +3,7 @@ import axiosPublic from '../utils/axiosAuth.jsx'
 
 
 const registerApi = (username, email, password) => {
-    const URL_API = import.meta.env.VITE_BASE_API + `/auth/register`;
+    const URL_API = `/auth/register`;
     const data = {
         username,
         email,
@@ -14,7 +14,7 @@ const registerApi = (username, email, password) => {
 }
 
 const loginApi = (email, password) => {
-    const URL_API = import.meta.env.VITE_BASE_API + `/auth/login`;
+    const URL_API = `/auth/login`;
     const data = {
         email,
         password,
@@ -24,27 +24,27 @@ const loginApi = (email, password) => {
 }
 
 const logoutApi = () => {
-    const URL_API = import.meta.env.VITE_BASE_API + `/auth/logout`;
+    const URL_API = `/auth/logout`;
     return instance.delete(URL_API);
 }
 
 // const userApi = () => {
-//     const URL_API = import.meta.env.VITE_BASE_API + `/auth/access`;
+//     const URL_API = `/auth/access`;
 //     return instance.get(URL_API);
 // }
 
 const userApi = () => {
-    const URL_API = import.meta.env.VITE_BASE_API + `/users/me`;
+    const URL_API = `/users/me`;
     return instance.get(URL_API);
 }
 
 const refreshTokenApi = () => {
-    const URL_API = import.meta.env.VITE_BASE_API + `/auth/refresh-token`;
+    const URL_API = `/auth/refresh-token`;
     return axiosPublic.put(URL_API);
 }
 
 const getCloudinarySignApi = () => {
-    const URL_API = import.meta.env.VITE_BASE_API + `/auth/cloudinary-sign`;
+    const URL_API = `/auth/cloudinary-sign`;
     return instance.get(URL_API);
 }
 
