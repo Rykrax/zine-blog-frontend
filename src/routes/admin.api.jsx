@@ -15,6 +15,11 @@ const updateUserRole = (_id, role) => {
     return instance.patch(URL_API, { role });
 }
 
+const updateUserProfile = (_id, data) => {
+    const URL_API = `/admin/users/${_id}`;
+    return instance.patch(URL_API, data);
+}
+
 const deleteUser = (_id) => {
     const URL_API = `/admin/users/${_id}`;
     return instance.delete(URL_API);
@@ -24,5 +29,6 @@ export const adminAPI = {
     getUser,
     deleteUser,
     updateUserStatus,
+    updateUserProfile,
     updateUserRole
 }

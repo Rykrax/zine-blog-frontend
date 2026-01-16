@@ -85,6 +85,7 @@ const AdminUsers = () => {
     };
 
     const showDetail = (user) => {
+        console.log(user);
         setSelectedUser({ ...user });
         setModalVisible(true);
         form.setFieldsValue({
@@ -98,11 +99,11 @@ const AdminUsers = () => {
             const values = await form.validateFields();
             setUpdateLoading(true);
 
-            await instance.put(`/admin/users/${selectedUser._id}`, {
+            await adminAPI.updateUserProfile(selectedUser._id, {
                 username: values.username,
                 bio: values.bio,
-            });
-
+                // avatar: avatarPreview
+            })
             message.success("Cập nhật thông tin user thành công");
             setModalVisible(false);
             fetchUsers();
@@ -110,6 +111,7 @@ const AdminUsers = () => {
             if (err.errorFields) {
                 return;
             }
+            console.log(err);
             message.error("Cập nhật user thất bại");
         } finally {
             setUpdateLoading(false);
