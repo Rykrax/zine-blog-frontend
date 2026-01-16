@@ -32,7 +32,8 @@ instance.interceptors.response.use((response) => {
 }, async (error) => {
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     // Do something with response error
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    if (status === 401) {
         await logoutApi();
         location.href = '/login';
     }
@@ -51,6 +52,23 @@ instance.interceptors.response.use((response) => {
             // return Promise.reject(err);
         }
     }
+
+    if (status === 403) {
+        const errorMessage = error.response?.data?.message || "";
+
+        if (errorMessage.includes("quyền admin") || errorMessage.includes("not allowed") || errorMessage.includes("thu hồi")) {
+            console.log("Role revoked - Redirecting to home");
+            message.warning("Quyền truy cập admin đã bị thu hồi");
+            location.href = "/";
+            return Promise.reject(error);
+        } else {
+            console.log("Account issue - Logging out");
+            message.error("Tài khoản không có quyền truy cập");
+            await logoutApi();
+            location.href = "/login";
+        }
+    }
+
     return Promise.reject(error);
 });
 

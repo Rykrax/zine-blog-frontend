@@ -34,7 +34,7 @@ const logoutApi = () => {
 // }
 
 const userApi = () => {
-    const URL_API = import.meta.env.VITE_BASE_API + `/user/me`;
+    const URL_API = import.meta.env.VITE_BASE_API + `/users/me`;
     return instance.get(URL_API);
 }
 

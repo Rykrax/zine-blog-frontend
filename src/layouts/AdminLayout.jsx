@@ -7,12 +7,22 @@ import {
     HomeOutlined
 } from "@ant-design/icons";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/providers/AuthProvider";
+import { useEffect } from "react";
 
 const { Sider, Content } = Layout;
 
 export default function AdminLayout() {
     const navigate = useNavigate();
     const location = useLocation();
+    const { user } = useAuth();
+
+    useEffect(() => {
+        if (user && user.role !== 'admin') {
+            message.warning('Bạn không có quyền truy cập trang Admin');
+            navigate('/');
+        }
+    }, [user, navigate]);
 
     return (
         <Layout style={{ minHeight: "100vh" }}>
