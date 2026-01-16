@@ -31,6 +31,7 @@ import {
 import { useAuth } from "../../providers/AuthProvider";
 import { userAPI } from "../../routes/user.api";
 import AppPagination from "../../components/Pagination";
+import { postAPI } from "@/routes/post.api";
 
 const { Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -84,17 +85,14 @@ function Profile() {
         const fetchPosts = async () => {
             try {
                 setLoadingPosts(true);
-                const postRes = await instance.get(import.meta.env.VITE_BASE_API + `/post/posts`, {
-                    params: {
-                        author: user._id,
-                        page: page,
-                        limit: limit
-                    }
+                const posts = await postAPI.getAllPost({
+                    author: user._id,
+                    page: page,
+                    limit: limit
                 });
 
-                setPosts(postRes.data || []);
-                setTotal(postRes.pagination?.total || 0);
-
+                setPosts(posts.data || []);
+                setTotal(posts.pagination?.total || 0);
             } catch (error) {
                 console.error("Fetch posts error:", error);
             } finally {

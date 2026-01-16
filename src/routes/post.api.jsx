@@ -6,7 +6,7 @@ const createPost = async (data) => {
 }
 
 const getAllPost = async (params = {}) => {
-    const URL_API = import.meta.env.VITE_BASE_API + `/posts/`;
+    const URL_API = import.meta.env.VITE_BASE_API + `/posts`;
     return instance.get(URL_API, { params });
 }
 
