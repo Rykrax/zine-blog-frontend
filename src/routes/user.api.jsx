@@ -5,22 +5,18 @@ const getUser = (_id) => {
     return instance.get(URL_API);
 }
 
-const changePasswordApi = (oldPassword, newPassword) => {
-    const URL_API = `/users/change-password`;
-    const data = {
-        oldPassword,
-        newPassword
-    }
+const changePasswordApi = (data) => {
+    const URL_API = `/users/me/password`;
     return instance.put(URL_API, data);
 }
 
 const updateProfileApi = (data) => {
-    const URL_API = `/users/update-profile`;
-    return instance.put(URL_API, data);
+    const URL_API = `/users/me`;
+    return instance.patch(URL_API, data);
 }
 
 const savePostApi = async (postId) => {
-    const URL_API = `/users/save-post/`;
+    const URL_API = `/users/me/saved-posts`;
     const data = {
         postId
     }

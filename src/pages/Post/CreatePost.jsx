@@ -2,7 +2,7 @@ import { Form, Input, Button, Card, Switch, Upload, message, Progress } from "an
 import { UploadOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import axiosPublic from "../../utils/axiosPublic.jsx";
-import { getCloudinarySignApi } from "../../routes/api.jsx";
+import { getCloudinarySignApi } from "../../routes/auth.api.jsx";
 import { postAPI } from "../../routes/post.api.jsx"
 import { useNavigate } from "react-router-dom";
 

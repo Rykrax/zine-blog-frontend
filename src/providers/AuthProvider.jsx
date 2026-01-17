@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { logoutApi, userApi } from "../routes/api";
+import { logoutApi, userApi } from "../routes/auth.api";
 
 const AuthContext = createContext({
     user: null,

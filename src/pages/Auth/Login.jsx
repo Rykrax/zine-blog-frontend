@@ -1,7 +1,7 @@
 import { Form, Input, Button, Card, message, Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import { Regex } from '../../utils/regex.jsx'
-import { loginApi } from '../../routes/api.jsx';
+import { loginApi } from '../../routes/auth.api.jsx';
 import { useAuth } from '../../providers/AuthProvider.jsx';
 
 const { Title } = Typography;

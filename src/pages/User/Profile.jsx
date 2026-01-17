@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import instance from "../../utils/authorizedAxios";
 import {
     Layout,
     Card,
@@ -9,7 +8,6 @@ import {
     Col,
     Typography,
     Tag,
-    List,
     Space,
     Divider,
     Statistic,
@@ -28,6 +26,7 @@ import {
     EditOutlined,
     HeartFilled
 } from "@ant-design/icons";
+
 import { useAuth } from "../../providers/AuthProvider";
 import { userAPI } from "../../routes/user.api";
 import AppPagination from "../../components/Pagination";
@@ -39,17 +38,55 @@ const { Title, Text, Paragraph } = Typography;
 const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString("vi-VN");
 
-const IconText = ({ icon, text, color }) => (
-    <Space>
-        {React.createElement(icon, { style: { color } })}
-        {text}
-    </Space>
+const PostCard = ({ post, onClick }) => (
+    <Card
+        hoverable
+        onClick={onClick}
+        styles={{ body: { padding: 16 } }}
+    >
+        <Row gutter={16}>
+            <Col flex="auto">
+                <Title level={5} style={{ marginBottom: 4 }}>
+                    {post.title}
+                </Title>
+
+                <Text type="secondary">
+                    Đăng ngày: {formatDate(post.createdAt)}
+                </Text>
+
+                <Paragraph ellipsis={{ rows: 2 }} style={{ marginTop: 8 }}>
+                    {post.content}
+                </Paragraph>
+
+                <Space size="middle" style={{ color: "#8c8c8c" }}>
+                    <span><EyeOutlined /> {post.stats?.views || 0}</span>
+                    <span>
+                        {(post.stats?.likes || 0) > 0
+                            ? <HeartFilled style={{ color: "red" }} />
+                            : <HeartOutlined />}
+                        {" "}{post.stats?.likes || 0}
+                    </span>
+                    <span><MessageOutlined /> {post.stats?.comment_count || 0}</span>
+                </Space>
+            </Col>
+
+            {post.thumbnail && (
+                <Col>
+                    <img
+                        src={post.thumbnail}
+                        alt="thumbnail"
+                        width={120}
+                        style={{ borderRadius: 8, objectFit: "cover" }}
+                    />
+                </Col>
+            )}
+        </Row>
+    </Card>
 );
 
 function Profile() {
     const { user } = useAuth();
     const navigate = useNavigate();
-
     const [searchParams] = useSearchParams();
 
     const [profile, setProfile] = useState(null);
@@ -67,10 +104,11 @@ function Profile() {
         const fetchProfile = async () => {
             try {
                 setLoadingProfile(true);
-                const userRes = await userAPI.getUser(user._id);
-                setProfile(userRes.data);
-            } catch (error) {
-                console.error("Fetch user profile error:", error);
+                const res = await userAPI.getUser(user._id);
+
+                setProfile(res.data);
+            } catch (err) {
+                console.error(err);
             } finally {
                 setLoadingProfile(false);
             }
@@ -85,16 +123,16 @@ function Profile() {
         const fetchPosts = async () => {
             try {
                 setLoadingPosts(true);
-                const posts = await postAPI.getAllPost({
+                const res = await postAPI.getPosts({
                     author: user._id,
-                    page: page,
-                    limit: limit
+                    page,
+                    limit
                 });
-
-                setPosts(posts.data || []);
-                setTotal(posts.pagination?.total || 0);
-            } catch (error) {
-                console.error("Fetch posts error:", error);
+                console.log(res);
+                setPosts(res.data || []);
+                setTotal(res.pagination?.total || 0);
+            } catch (err) {
+                console.error(err);
             } finally {
                 setLoadingPosts(false);
             }
@@ -114,80 +152,77 @@ function Profile() {
     }
 
     if (!profile) {
-        return (
-            <Layout style={{ minHeight: "100vh" }}>
-                <Content style={{ padding: 24 }}>
-                    <Text type="danger">Không thể tải thông tin người dùng</Text>
-                </Content>
-            </Layout>
-        );
+        return <Text type="danger">Không thể tải thông tin người dùng</Text>;
     }
 
     return (
         <Row gutter={[24, 24]}>
+            {/* PROFILE INFO */}
             <Col xs={24} md={8}>
-                <Card hoverable>
+                <Card>
                     <div style={{ textAlign: "center", marginBottom: 20 }}>
                         <Avatar
                             size={150}
                             src={profile.avatar}
                             icon={<UserOutlined />}
-                            style={{ marginBottom: 16, border: "2px solid #1890ff" }}
+                            style={{ border: "2px solid #1890ff" }}
                         />
-                        <Title level={3} style={{ marginBottom: 0 }}>{profile.username}</Title>
-                        <Tag color={profile.role === "admin" ? "red" : "blue"} style={{ marginTop: 8 }}>
+                        <Title level={3} style={{ marginTop: 12 }}>
+                            {profile.username}
+                        </Title>
+                        <Tag color={profile.role === "admin" ? "red" : "blue"}>
                             {profile.role?.toUpperCase()}
                         </Tag>
                     </div>
+
                     <Paragraph type="secondary" style={{ textAlign: "center" }}>
                         {profile.bio || "Chưa có mô tả"}
                     </Paragraph>
+
                     <Divider />
-                    <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+
+                    <Space orientation="vertical" style={{ width: "100%" }}>
                         <Space>
-                            <MailOutlined style={{ color: "#1890ff" }} />
+                            <MailOutlined />
                             <Text>{profile.email}</Text>
                         </Space>
-
                         <Space>
-                            <CalendarOutlined style={{ color: "#1890ff" }} />
+                            <CalendarOutlined />
                             <Text>Tham gia: {formatDate(profile.createdAt)}</Text>
                         </Space>
 
-                        <div style={{ textAlign: "center", marginTop: 12 }}>
-                            <Button
-                                type="primary"
-                                icon={<EditOutlined />}
-                                onClick={() => navigate("/update-profile")}
-                            >
-                                Cập nhật thông tin
-                            </Button>
-                        </div>
+                        <Button
+                            type="primary"
+                            icon={<EditOutlined />}
+                            onClick={() => navigate("/update-profile")}
+                            style={{ display: "block", margin: "12px auto 0" }}
+                        >
+                            Cập nhật thông tin
+                        </Button>
                     </Space>
 
                     <Divider />
-                    <Row gutter={16} style={{ textAlign: "center" }}>
-                        <Col span={12}><Statistic title="Bài viết" value={total} prefix={<FileTextOutlined />} /></Col>
-                        <Col span={12}>
+
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                            <Statistic title="Bài viết" value={total} prefix={<FileTextOutlined />} />
+                        </div>
+                        <div style={{ flex: 1, textAlign: "center" }}>
                             <Statistic
                                 title="Yêu thích"
                                 value={profile.saved_posts?.length || 0}
                                 prefix={<HeartOutlined />}
                             />
-                        </Col>
-                    </Row>
+                        </div>
+                    </div>
                 </Card>
             </Col>
 
+            {/* POSTS */}
             <Col xs={24} md={16}>
-                <Space direction="vertical" size="large" style={{ width: '100%' }}>
-
+                <Space orientation="vertical" size="large" style={{ width: "100%" }}>
                     <Card
-                        title={
-                            <Title level={4} style={{ margin: 0 }}>
-                                <FileTextOutlined /> Bài viết của tôi
-                            </Title>
-                        }
+                        title={<Title level={4}><FileTextOutlined /> Bài viết của tôi</Title>}
                         extra={
                             <Button
                                 type="primary"
@@ -198,81 +233,38 @@ function Profile() {
                             </Button>
                         }
                     >
-                        <List
-                            loading={loadingPosts}
-                            itemLayout="vertical"
-                            size="large"
-                            dataSource={posts}
-                            locale={{ emptyText: "Bạn chưa có bài viết nào" }}
-                            renderItem={(item) => (
-                                <List.Item
-                                    key={item._id}
-                                    actions={[
-                                        <IconText icon={EyeOutlined} text={item.stats?.views || 0} key="views" />,
-                                        <IconText
-                                            icon={(item.stats?.likes || 0) > 0 ? HeartFilled : HeartOutlined}
-                                            text={item.stats?.likes || 0}
-                                            key="likes"
-                                            color={(item.stats?.likes || 0) > 0 ? "red" : undefined}
-                                        />,
-                                        <IconText icon={MessageOutlined} text={item.stats?.comment_count || 0} key="comments" />,
-                                    ]}
-                                    extra={item.thumbnail && <img width={150} alt="thumbnail" src={item.thumbnail} style={{ borderRadius: 8, objectFit: "cover" }} />}
-                                >
-                                    <List.Item.Meta
-                                        title={<a href={`/post/${item.slug}`}>{item.title}</a>}
-                                        description={<Text type="secondary">Đăng ngày: {formatDate(item.createdAt)}</Text>}
+                        {loadingPosts ? (
+                            <Spin />
+                        ) : posts.length === 0 ? (
+                            <Text type="secondary">Bạn chưa có bài viết nào</Text>
+                        ) : (
+                            <Space orientation="vertical" style={{ width: "100%" }}>
+                                {posts.map(post => (
+                                    <PostCard
+                                        key={post._id}
+                                        post={post}
+                                        onClick={() => navigate(`/post/${post.fullSlug}`)}
                                     />
-                                    <Paragraph ellipsis={{ rows: 2 }}>{item.content}</Paragraph>
-                                </List.Item>
-                            )}
-                        />
+                                ))}
+                            </Space>
+                        )}
 
-                        <div style={{ display: "flex", justifyContent: "center" }}>
-                            <AppPagination
-                                total={total}
-                                defaultPageSize={limit}
-                            />
+                        <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
+                            <AppPagination total={total} defaultPageSize={limit} />
                         </div>
                     </Card>
 
-                    <Card
-                        title={
-                            <Title level={4} style={{ margin: 0 }}>
-                                <HeartOutlined /> Bài viết yêu thích
-                            </Title>
-                        }
-                    >
-                        <List
-                            itemLayout="vertical"
-                            size="large"
-                            dataSource={profile.saved_posts || []}
-                            locale={{ emptyText: "Chưa lưu bài viết nào" }}
-                            renderItem={(item) => (
-                                <List.Item
-                                    key={item._id}
-                                    actions={typeof item === 'object' ? [
-                                        <IconText icon={EyeOutlined} text={item.stats?.views || 0} key="views" />,
-                                        <IconText
-                                            icon={(item.stats?.likes || 0) > 0 ? HeartFilled : HeartOutlined}
-                                            text={item.stats?.likes || 0}
-                                            key="likes"
-                                            color={(item.stats?.likes || 0) > 0 ? "red" : undefined}
-                                        />,
-                                        <IconText icon={MessageOutlined} text={item.stats?.comment_count || 0} key="comments" />,
-                                    ] : []}
-                                    extra={item.thumbnail && <img width={150} alt="thumbnail" src={item.thumbnail} style={{ borderRadius: 8, objectFit: "cover" }} />}
-                                >
-                                    <List.Item.Meta
-                                        title={<a href={`/post/${item.slug}`}>{item.title || "Bài viết không tồn tại"}</a>}
-                                        description={<Text type="secondary">Đăng ngày: {item.createdAt ? formatDate(item.createdAt) : "N/A"}</Text>}
-                                    />
-                                    <Paragraph ellipsis={{ rows: 2 }}>{item.content}</Paragraph>
-                                </List.Item>
-                            )}
-                        />
+                    <Card title={<Title level={4}><HeartOutlined /> Bài viết yêu thích</Title>}>
+                        <Space orientation="vertical" style={{ width: "100%" }}>
+                            {(profile.saved_posts || []).map(post => (
+                                <PostCard
+                                    key={post._id}
+                                    post={post}
+                                    onClick={() => navigate(`/post/${post.slug}`)}
+                                />
+                            ))}
+                        </Space>
                     </Card>
-
                 </Space>
             </Col>
         </Row>

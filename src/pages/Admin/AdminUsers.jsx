@@ -215,13 +215,21 @@ const AdminUsers = () => {
                                 <Form.Item
                                     name="username"
                                     noStyle
+                                    normalize={(v) => (v || "").trim()}
                                     rules={[
-                                        { required: true, message: "Vui lòng nhập tên đăng nhập!" },
-                                        { pattern: Regex.USERNAME_REGEX, message: "Tên đăng nhập không hợp lệ!" }
+                                        {
+                                            required: true,
+                                            message: "Vui lòng nhập tên đăng nhập!"
+                                        },
+                                        {
+                                            pattern: Regex.USERNAME_REGEX,
+                                            message: "Tên đăng nhập không hợp lệ!"
+                                        }
                                     ]}
                                 >
                                     <Input placeholder="Nhập tên đăng nhập" />
                                 </Form.Item>
+
                             </Descriptions.Item>
 
                             <Descriptions.Item label="Email">

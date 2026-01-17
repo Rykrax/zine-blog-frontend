@@ -10,8 +10,12 @@ const ChangePassword = () => {
 
     const onFinish = async (values) => {
         try {
-            const { oldPassword, newPassword } = values;
-            await userAPI.changePasswordApi(oldPassword, newPassword);
+            const data = {
+                oldPassword: values.oldPassword,
+                newPassword: values.newPassword
+            }
+            console.log(data);
+            await userAPI.changePasswordApi(data);
             message.success("Đổi mật khẩu thành công");
             navigate("/profile");
         } catch (error) {

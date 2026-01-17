@@ -1,5 +1,5 @@
 import { Form, Input, Button, Card, message, Typography } from 'antd';
-import { registerApi } from '../../routes/api';
+import { registerApi } from '../../routes/auth.api';
 import { Link, useNavigate } from 'react-router-dom';
 import { Regex } from '../../utils/regex';
 
@@ -11,7 +11,7 @@ const Register = () => {
     const onFinish = async (values) => {
         try {
             const { username, email, password } = values;
-            const res = await registerApi(username, email, password);
+            await registerApi(username, email, password);
             message.success('Đăng ký thành công');
             navigate('/login');
         } catch (error) {

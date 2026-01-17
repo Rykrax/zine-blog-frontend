@@ -1,6 +1,6 @@
 import { message } from "antd";
 import axios from "axios";
-import { logoutApi, refreshTokenApi } from "../routes/api";
+import { logoutApi, refreshTokenApi } from "../routes/auth.api";
 
 const instance = axios.create({
     baseURL: import.meta.env.VITE_BACKEND_URL,

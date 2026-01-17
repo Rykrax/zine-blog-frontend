@@ -16,7 +16,7 @@ import { Regex } from "../../utils/regex.jsx";
 import { userAPI } from "../../routes/user.api.jsx";
 import { useAuth } from "../../providers/AuthProvider.jsx";
 import axiosPublic from "../../utils/axiosPublic.jsx";
-import { getCloudinarySignApi } from "../../routes/api.jsx";
+import { getCloudinarySignApi } from "../../routes/auth.api.jsx";
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -89,7 +89,7 @@ const UpdateProfile = () => {
                 bio: values.bio,
                 avatar: avatarPreview
             });
-            console.log(res);
+
             updateUser(res.user);
             message.success("Cập nhật thông tin thành công!");
             navigate(-1);
