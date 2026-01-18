@@ -124,7 +124,7 @@ function Profile() {
             try {
                 setLoadingPosts(true);
                 const res = await postAPI.getPosts({
-                    author: user._id,
+                    // author: user._id,
                     page,
                     limit
                 });

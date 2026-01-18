@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom"; // Added useNavigate
 import {
     Layout, Typography, Avatar, Space, Button, Divider, Spin,
-    Card, Row, Col, Statistic, message, Tooltip, Input, Dropdown
+    Card, Row, Col, message, Tooltip, Input, Dropdown, Menu, Modal, Form, Upload, Switch, Progress
 } from "antd";
 import {
-    UserOutlined, CalendarOutlined, EyeOutlined, ShareAltOutlined,
+    UserOutlined, EyeOutlined, ShareAltOutlined,
     HeartOutlined, HeartFilled, MessageOutlined, MoreOutlined,
-    BookOutlined, ClockCircleOutlined
+    EditOutlined, DeleteOutlined, UploadOutlined, ExclamationCircleOutlined
 } from "@ant-design/icons";
 
 import { userAPI } from "../../routes/user.api.jsx";
-import { userApi } from "../../routes/auth.api.jsx";
+import { userApi, getCloudinarySignApi } from "../../routes/auth.api.jsx"; // Added upload api
 import { postAPI } from "@/routes/post.api.jsx";
+import axiosPublic from "../../utils/axiosPublic.jsx"; // Added axiosPublic
 import AppPagination from "@/components/Pagination";
 import { formatDistanceToNowStrict } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -21,24 +22,159 @@ import { commentAPI } from "@/routes/comment.api.jsx";
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
+const { TextArea } = Input; // Added for Edit Form
+const { confirm } = Modal; // Added for Delete Confirmation
 
 const PostDetail = () => {
     const { user } = useAuth();
     const { slug } = useParams();
+    const navigate = useNavigate(); // Added hook
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
+
+    // Comment states
     const [commentTotal, setCommentTotal] = useState(0);
     const [comments, setComments] = useState([]);
     const [commentLoading, setCommentLoading] = useState(false);
     const [commentContent, setCommentContent] = useState("");
     const [commentSubmitting, setCommentSubmitting] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    // Edit & Upload states
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editForm] = Form.useForm();
+    const [uploading, setUploading] = useState(false);
+    const [uploadPercent, setUploadPercent] = useState(0);
+    const [imageUrl, setImageUrl] = useState(null);
+    const [updating, setUpdating] = useState(false);
+
     const [searchParams] = useSearchParams();
 
     const page = Number(searchParams.get("page")) || 1;
     const limit = Number(searchParams.get("limit")) || 5;
 
+    // --- LOGIC UPLOAD ẢNH (Giống CreatePost) ---
+    const uploadToCloudinary = async (file) => {
+        setUploading(true);
+        setUploadPercent(0);
+
+        try {
+            const sign = await getCloudinarySignApi();
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("api_key", sign.apiKey);
+            formData.append("timestamp", sign.timestamp);
+            formData.append("signature", sign.signature);
+            formData.append("folder", "upload-zine-blog");
+
+            const res = await axiosPublic.post(
+                `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
+                formData,
+                {
+                    onUploadProgress: (e) => {
+                        const percent = Math.round((e.loaded * 100) / e.total);
+                        setUploadPercent(percent);
+                    }
+                }
+            );
+            setImageUrl(res.data.secure_url);
+            message.success("Upload ảnh thành công");
+        } catch (error) {
+            message.error("Lỗi upload ảnh");
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    // --- LOGIC XÓA BÀI VIẾT ---
+    const showDeleteConfirm = () => {
+        confirm({
+            title: 'Bạn có chắc chắn muốn xóa bài viết này?',
+            icon: <ExclamationCircleOutlined style={{ color: 'red' }} />,
+            content: 'Hành động này không thể hoàn tác.',
+            okText: 'Xóa',
+            okType: 'danger',
+            cancelText: 'Hủy',
+            onOk: async () => {
+                try {
+                    await postAPI.deletePosts(slug);
+                    message.success('Đã xóa bài viết thành công');
+                    navigate('/');
+                } catch (error) {
+                    message.error('Lỗi khi xóa bài viết');
+                }
+            },
+            onCancel() {
+                console.log('Cancel delete');
+            },
+        });
+    };
+
+    // --- LOGIC CHỈNH SỬA BÀI VIẾT ---
+    const handleOpenEditModal = () => {
+        setImageUrl(post.thumbnail);
+        editForm.setFieldsValue({
+            title: post.title,
+            content: post.content,
+            is_published: post.is_published,
+        });
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdatePost = async (values) => {
+        if (!imageUrl) {
+            message.warning("Vui lòng đợi ảnh upload xong hoặc chọn ảnh mới");
+            return;
+        }
+
+        try {
+            setUpdating(true);
+            const updatedData = {
+                title: values.title,
+                content: values.content,
+                is_published: values.is_published,
+                thumbnail: imageUrl
+            };
+
+            const res = await postAPI.updatePosts(slug, updatedData);
+            const updatedPost = res.data?.data || res.data;
+            setPost(prev => ({
+                ...updatedPost,
+                author: prev.author,
+                // stats: prev.stats 
+            }));
+            message.success("Cập nhật bài viết thành công!");
+            setIsEditModalOpen(false);
+
+            if (updatedPost.fullSlug && updatedPost.fullSlug !== slug) {
+                navigate(`/post/${updatedPost.fullSlug}`, { replace: true });
+            }
+        } catch (error) {
+            message.error("Lỗi cập nhật bài viết");
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    // --- Menu Item Definition ---
+    const menuItems = [
+        {
+            key: 'edit',
+            label: 'Chỉnh sửa',
+            icon: <EditOutlined />,
+            onClick: handleOpenEditModal
+        },
+        {
+            key: 'delete',
+            label: <span style={{ color: 'red' }}>Xóa bài viết</span>,
+            icon: <DeleteOutlined style={{ color: 'red' }} />,
+            onClick: showDeleteConfirm
+        }
+    ];
+
+    // --- Existing Logic ---
     const handleSubmitComment = async () => {
         if (!commentContent.trim()) {
             message.warning("Vui lòng nhập nội dung bình luận");
@@ -51,7 +187,18 @@ const PostDetail = () => {
             setCommentContent("");
             fetchComments();
         } catch (err) {
-            message.error(err.response?.data?.message || "Bạn cần đăng nhập để bình luận");
+            if (err.response?.status === 404) {
+                Modal.warning({
+                    title: 'Bài viết không còn khả dụng',
+                    content: 'Bài viết này đã bị xóa hoặc chuyển sang chế độ riêng tư bởi tác giả.',
+                    okText: 'Quay về trang chủ',
+                    onOk: () => {
+                        navigate('/');
+                    }
+                });
+            } else {
+                message.error(err.response?.data?.message || "Bạn cần đăng nhập để bình luận");
+            }
         } finally {
             setCommentSubmitting(false);
         }
@@ -63,46 +210,37 @@ const PostDetail = () => {
         } catch (e) { return "vừa xong"; }
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return "";
-        return new Date(dateString).toLocaleDateString("vi-VN", { day: 'numeric', month: 'long', year: 'numeric' });
-    };
-
-    const calculateReadTime = (content) => {
-        if (!content) return 0;
-        const wordCount = content.split(/\s+/g).length;
-        return Math.ceil(wordCount / 200);
-    };
-
     const handleToggleSave = async () => {
         if (!post) return;
         try {
             setSaving(true);
             const res = await userAPI.savePostApi(post._id);
-            console.log("save post:", res);
             const status = res.data?.status || res.status;
             if (status === 'saved' || res.data?.message?.includes("Đã lưu")) {
                 setSaved(true);
                 setPost(prev => ({
                     ...prev,
-                    stats: {
-                        ...prev.stats,
-                        likes: (prev.stats?.likes || 0) + 1
-                    }
+                    stats: { ...prev.stats, likes: (prev.stats?.likes || 0) + 1 }
                 }));
                 message.success("Đã thêm vào danh sách yêu thích!");
             } else {
                 setSaved(false);
                 setPost(prev => ({
                     ...prev,
-                    stats: {
-                        ...prev.stats,
-                        likes: Math.max(0, (prev.stats?.likes || 0) - 1)
-                    }
+                    stats: { ...prev.stats, likes: Math.max(0, (prev.stats?.likes || 0) - 1) }
                 }));
                 message.success("Đã bỏ yêu thích.");
             }
         } catch (error) { message.error("Lỗi thao tác yêu thích."); } finally { setSaving(false); }
+    };
+
+    const handleCopyLink = async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            setCopied(true);
+            message.success("Đã sao chép liên kết!");
+            setTimeout(() => setCopied(false), 2000);
+        } catch { message.error("Không thể sao chép liên kết"); }
     };
 
     const fetchComments = async () => {
@@ -135,6 +273,7 @@ const PostDetail = () => {
             try {
                 setLoading(true);
                 const res = await postAPI.getPostDetail(slug);
+                // console.log(res);
                 const postData = res.data.data || res.data;
                 setPost(postData);
                 if (postData && postData._id) checkUserSavedStatus(postData._id);
@@ -144,6 +283,8 @@ const PostDetail = () => {
     }, [slug]);
 
     useEffect(() => { fetchComments(); }, [slug, page, limit]);
+
+    const isAuthor = user && post && user._id === post.author?._id;
 
     if (loading) return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f0f2f5' }}>
@@ -156,12 +297,6 @@ const PostDetail = () => {
             <Title level={3}>Không tìm thấy bài viết</Title>
         </div>
     );
-
-    const shareItems = [
-        { key: '1', label: 'Chia sẻ lên Facebook' },
-        { key: '2', label: 'Chia sẻ lên Twitter' },
-        { key: '3', label: 'Sao chép liên kết' }
-    ];
 
     return (
         <Content style={{ background: '#f0f2f5', minHeight: '100vh', padding: '20px 0' }}>
@@ -178,8 +313,8 @@ const PostDetail = () => {
                                 border: 'none'
                             }}
                         >
-                            {/* Author Info */}
-                            <div style={{ marginBottom: 24 }}>
+                            {/* Author Info & Actions */}
+                            <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <Space size={12} align="start">
                                     <Avatar
                                         size={48}
@@ -187,7 +322,7 @@ const PostDetail = () => {
                                         icon={<UserOutlined />}
                                         style={{ cursor: 'pointer' }}
                                     />
-                                    <div style={{ flex: 1 }}>
+                                    <div>
                                         <div>
                                             <Text strong style={{ fontSize: 15, cursor: 'pointer' }}>
                                                 {post.author?.username || "Tác giả"}
@@ -195,17 +330,20 @@ const PostDetail = () => {
                                         </div>
                                         <Space size={8} style={{ fontSize: 13, color: '#65676b' }}>
                                             <span>{formatDistanceToNow(post.createdAt)} trước</span>
-                                            {/* <span>•</span> */}
-                                            {/* <ClockCircleOutlined style={{ fontSize: 12 }} /> */}
-                                            {/* <span>{calculateReadTime(post.content)} phút đọc</span> */}
                                         </Space>
                                     </div>
-                                    {/* <Button
-                                        type="text"
-                                        icon={<MoreOutlined />}
-                                        style={{ color: '#65676b' }}
-                                    /> */}
                                 </Space>
+
+                                {/* 3-Dots Menu (Only for Author) */}
+                                {isAuthor && (
+                                    <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={['click']}>
+                                        <Button
+                                            type="text"
+                                            shape="circle"
+                                            icon={<MoreOutlined style={{ fontSize: '20px' }} />}
+                                        />
+                                    </Dropdown>
+                                )}
                             </div>
 
                             {/* Post Title */}
@@ -283,13 +421,18 @@ const PostDetail = () => {
                                 >
                                     Bình luận
                                 </Button>
-                                <Dropdown menu={{ items: shareItems }} trigger={['click']}>
+                                <Tooltip title={copied ? "Đã copy" : "Sao chép liên kết"}>
                                     <Button
                                         type="text"
-                                        icon={<ShareAltOutlined />}
+                                        icon={
+                                            <ShareAltOutlined
+                                                style={{ color: copied ? "#52c41a" : undefined }}
+                                            />
+                                        }
+                                        onClick={handleCopyLink}
                                         style={{
                                             flex: 1,
-                                            color: '#65676b',
+                                            color: copied ? "#52c41a" : "#65676b",
                                             fontWeight: 600,
                                             height: 40,
                                             borderRadius: 8,
@@ -299,9 +442,10 @@ const PostDetail = () => {
                                         }}
                                         className="hover-button"
                                     >
-                                        Chia sẻ
+                                        {copied ? "Đã sao chép" : "Sao chép liên kết"}
                                     </Button>
-                                </Dropdown>
+                                </Tooltip>
+
                             </div>
                         </Card>
 
@@ -431,18 +575,6 @@ const PostDetail = () => {
                                                 >
                                                     Thích
                                                 </Text>
-                                                {/* <Text
-                                                    strong
-                                                    style={{
-                                                        cursor: 'pointer',
-                                                        fontSize: '13px',
-                                                        color: '#65676b',
-                                                        fontWeight: 600
-                                                    }}
-                                                    className="action-text"
-                                                >
-                                                    Trả lời
-                                                </Text> */}
                                                 <Text style={{ fontSize: '13px', color: '#65676b' }}>
                                                     {formatDistanceToNow(item.createdAt)}
                                                 </Text>
@@ -568,6 +700,82 @@ const PostDetail = () => {
                     </Col>
                 </Row>
             </div>
+
+            {/* Edit Post Modal */}
+            <Modal
+                title="Chỉnh sửa bài viết"
+                open={isEditModalOpen}
+                onCancel={() => setIsEditModalOpen(false)}
+                footer={null}
+                width={800}
+            >
+                <Form layout="vertical" form={editForm} onFinish={handleUpdatePost}>
+                    <Form.Item
+                        label="Tiêu đề"
+                        name="title"
+                        rules={[{ required: true, message: "Nhập tiêu đề" }]}
+                    >
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Thumbnail"
+                        layout="horizontal"
+                    >
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                            {imageUrl && (
+                                <img src={imageUrl} alt="Thumbnail" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, objectFit: 'cover' }} />
+                            )}
+                            <Upload
+                                listType="picture"
+                                maxCount={1}
+                                beforeUpload={(file) => {
+                                    uploadToCloudinary(file);
+                                    return false;
+                                }}
+                                showUploadList={false}
+                            >
+                                <Button icon={<UploadOutlined />}>
+                                    {imageUrl ? "Đổi ảnh khác" : "Chọn ảnh"}
+                                </Button>
+                            </Upload>
+                        </Space>
+                    </Form.Item>
+
+                    {uploading && <Progress percent={uploadPercent} size="small" />}
+
+                    <Form.Item
+                        label="Nội dung"
+                        name="content"
+                        rules={[{ required: true, message: "Nhập nội dung" }]}
+                        style={{ marginTop: 16 }}
+                    >
+                        <TextArea rows={6} />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Công khai"
+                        name="is_published"
+                        valuePropName="checked"
+                    >
+                        <Switch />
+                    </Form.Item>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                        <Button onClick={() => setIsEditModalOpen(false)}>
+                            Hủy
+                        </Button>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            loading={updating}
+                            disabled={uploading}
+                        >
+                            Cập nhật
+                        </Button>
+                    </div>
+                </Form>
+            </Modal>
 
             <style>{`
                 .post-title-responsive { 

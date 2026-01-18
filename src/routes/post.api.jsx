@@ -10,6 +10,16 @@ const getPosts = async (params = {}) => {
     return instance.get(URL_API, { params });
 }
 
+const updatePosts = async (fullSlug, data) => {
+    const URL_API = `/posts/${fullSlug}`;
+    return instance.patch(URL_API, data);
+}
+
+const deletePosts = async (fullSlug) => {
+    const URL_API = `/posts/${fullSlug}`;
+    return instance.delete(URL_API);
+}
+
 const getPostDetail = async (fullSlug) => {
     const URL_API = `/posts/${fullSlug}`;
     return instance.get(URL_API);
@@ -29,6 +39,8 @@ const getCommentByPost = async (fullSlug, params = {}) => {
 export const postAPI = {
     createPost,
     getPosts,
+    updatePosts,
+    deletePosts,
     getPostDetail,
     createComment,
     getCommentByPost

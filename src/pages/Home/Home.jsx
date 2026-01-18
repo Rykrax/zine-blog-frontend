@@ -11,8 +11,10 @@ import {
 } from "antd";
 import {
     EyeOutlined,
+    GlobalOutlined,
     HeartFilled,
     HeartOutlined,
+    LockOutlined,
     MessageOutlined,
     UserOutlined
 } from "@ant-design/icons";
@@ -139,11 +141,26 @@ const HomePage = () => {
                                         <Text strong style={{ marginRight: 8 }}>
                                             {post.author?.username || "Người dùng"}
                                         </Text>
-                                        <Text type="secondary" style={{ fontSize: 13 }}>
+                                        <Text type="secondary" style={{ fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
                                             {displayPage.getRelativeTime(post.createdAt)}
-                                            <span style={{ margin: "0 6px" }}>•</span>
-                                            {displayPage.getReadingTime(post.content)}
+
+                                            {/* <span>•</span>
+
+                                            {displayPage.getReadingTime(post.content)} */}
+
+                                            <span>·</span>
+
+                                            {post.is_published ? (
+                                                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                                    <GlobalOutlined />
+                                                </span>
+                                            ) : (
+                                                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                                    <LockOutlined />
+                                                </span>
+                                            )}
                                         </Text>
+
                                     </div>
 
                                     {/* ẢNH MOBILE */}
