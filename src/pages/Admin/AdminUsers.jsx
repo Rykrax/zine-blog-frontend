@@ -18,7 +18,6 @@ import {
     StopOutlined,
     CheckCircleOutlined
 } from "@ant-design/icons";
-import instance from "../../utils/authorizedAxios.jsx";
 import { adminAPI } from "../../routes/admin.api.jsx";
 import { Regex } from "../../utils/regex.jsx";
 

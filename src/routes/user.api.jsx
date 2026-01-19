@@ -15,7 +15,7 @@ const updateProfileApi = (data) => {
     return instance.patch(URL_API, data);
 }
 
-const savePostApi = async (postId) => {
+const savePostApi = (postId) => {
     const URL_API = `/users/me/saved-posts`;
     const data = {
         postId
@@ -23,9 +23,15 @@ const savePostApi = async (postId) => {
     return instance.post(URL_API, data);
 }
 
+const getAuthorPosts = (params) => {
+    const URL_API = `/users/me/posts`;
+    return instance.get(URL_API, { params });
+}
+
 export const userAPI = {
     getUser,
     changePasswordApi,
     updateProfileApi,
-    savePostApi
+    savePostApi,
+    getAuthorPosts
 }

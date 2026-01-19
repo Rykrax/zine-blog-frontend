@@ -123,12 +123,11 @@ function Profile() {
         const fetchPosts = async () => {
             try {
                 setLoadingPosts(true);
-                const res = await postAPI.getPosts({
-                    // author: user._id,
+                const res = await userAPI.getAuthorPosts({
                     page,
                     limit
                 });
-                console.log(res);
+                // console.log(res);
                 setPosts(res.data || []);
                 setTotal(res.pagination?.total || 0);
             } catch (err) {
@@ -260,7 +259,7 @@ function Profile() {
                                 <PostCard
                                     key={post._id}
                                     post={post}
-                                    onClick={() => navigate(`/post/${post.slug}`)}
+                                    onClick={() => navigate(`/post/${post.slug}-${post._id}`)}
                                 />
                             ))}
                         </Space>

@@ -4,7 +4,8 @@ import {
     UserOutlined,
     FileTextOutlined,
     SettingOutlined,
-    HomeOutlined
+    HomeOutlined,
+    MessageOutlined
 } from "@ant-design/icons";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/providers/AuthProvider";
@@ -53,9 +54,9 @@ export default function AdminLayout() {
                             label: "Posts"
                         },
                         {
-                            key: "/admin/settings",
-                            icon: <SettingOutlined />,
-                            label: "Settings"
+                            key: "/admin/comments",
+                            icon: <MessageOutlined />,
+                            label: "Comments"
                         }
                     ]}
                 />

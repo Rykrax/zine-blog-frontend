@@ -54,19 +54,21 @@ instance.interceptors.response.use((response) => {
     }
 
     if (status === 403) {
-        const errorMessage = error.response?.data?.message || "";
-
-        if (errorMessage.includes("quyền admin") || errorMessage.includes("not allowed") || errorMessage.includes("thu hồi")) {
-            console.log("Role revoked - Redirecting to home");
-            message.warning("Quyền truy cập admin đã bị thu hồi");
+        if (originalRequest.url?.startsWith("/admin")) {
             location.href = "/";
-            return Promise.reject(error);
-        } else {
-            console.log("Account issue - Logging out");
-            message.error("Tài khoản không có quyền truy cập");
-            await logoutApi();
-            location.href = "/login";
         }
+        return Promise.reject(error);
+        // if (errorMessage.includes("quyền admin") || errorMessage.includes("not allowed") || errorMessage.includes("thu hồi")) {
+        //     console.log("Role revoked - Redirecting to home");
+        //     message.warning("Quyền truy cập admin đã bị thu hồi");
+        //     location.href = "/";
+        //     return Promise.reject(error);
+        // } else {
+        //     console.log("Account issue - Logging out");
+        //     message.error("Tài khoản không có quyền truy cập");
+        //     await logoutApi();
+        //     location.href = "/login";
+        // }
     }
 
     return Promise.reject(error);

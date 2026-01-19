@@ -1,39 +1,56 @@
-import React from "react";
-import { Row, Col, Card, Statistic, List, Avatar, Typography } from "antd";
+import React, { useState, useEffect } from "react";
+import { Row, Col, Card, Statistic, List, Avatar, Typography, Spin } from "antd";
 import {
     UserOutlined,
     FileTextOutlined,
     CommentOutlined,
     EyeOutlined
 } from "@ant-design/icons";
+import { adminAPI } from "../../routes/admin.api";
+import { useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
 export const Dashboard = () => {
-    const stats = {
-        users: 128,
-        posts: 56,
-        comments: 342,
-        views: 12540
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({
+        users: 0,
+        posts: 0,
+        comments: 0,
+        views: 0
+    });
+    const [topPosts, setTopPosts] = useState([]);
+    const [recentUsers, setRecentUsers] = useState([]);
+    const [recentComments, setRecentComments] = useState([]);
+
+    useEffect(() => {
+        fetchStats();
+    }, []);
+
+    const fetchStats = async () => {
+        try {
+            setLoading(true);
+            const res = await adminAPI.getStats();
+            const data = res.data;
+            setStats(data.stats);
+            setTopPosts(data.topPosts);
+            setRecentUsers(data.recentUsers);
+            setRecentComments(data.recentComments);
+        } catch (err) {
+            console.error("Error fetching stats:", err);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const topPosts = [
-        { id: 1, title: "Học React từ cơ bản", views: 3200, comments: 45 },
-        { id: 2, title: "NodeJS & Express Best Practice", views: 2700, comments: 32 },
-        { id: 3, title: "RESTful API là gì?", views: 1900, comments: 21 }
-    ];
-
-    const recentUsers = [
-        { id: 1, username: "rykrax", email: "rykrax@gmail.com" },
-        { id: 2, username: "admin01", email: "admin01@gmail.com" },
-        { id: 3, username: "user_test", email: "user@gmail.com" }
-    ];
-
-    const recentComments = [
-        { id: 1, content: "Bài viết rất hay", user: "rykrax" },
-        { id: 2, content: "Mình chưa hiểu phần slug", user: "user_test" },
-        { id: 3, content: "Cảm ơn tác giả!", user: "admin01" }
-    ];
+    if (loading) {
+        return (
+            <div style={{ padding: 24, textAlign: "center" }}>
+                <Spin size="large" />
+            </div>
+        );
+    }
 
     return (
         <div style={{ padding: 24 }}>
@@ -84,12 +101,15 @@ export const Dashboard = () => {
                         <List
                             dataSource={topPosts}
                             renderItem={(item) => (
-                                <List.Item>
+                                <List.Item
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => navigate(`/post/${item.fullSlug}`)}
+                                >
                                     <List.Item.Meta
                                         title={item.title}
                                         description={
                                             <Text type="secondary">
-                                                👁 {item.views} views · 💬 {item.comments} comments
+                                                <EyeOutlined /> {item.views} views · <CommentOutlined /> {item.comments} comments
                                             </Text>
                                         }
                                     />
@@ -100,13 +120,13 @@ export const Dashboard = () => {
                 </Col>
 
                 <Col span={12}>
-                    <Card title="👤 New Users">
+                    <Card title="New Users">
                         <List
                             dataSource={recentUsers}
                             renderItem={(item) => (
                                 <List.Item>
                                     <List.Item.Meta
-                                        avatar={<Avatar icon={<UserOutlined />} />}
+                                        avatar={<Avatar src={item.avatar} icon={<UserOutlined />} />}
                                         title={item.username}
                                         description={item.email}
                                     />
@@ -123,11 +143,15 @@ export const Dashboard = () => {
                         <List
                             dataSource={recentComments}
                             renderItem={(item) => (
-                                <List.Item>
-                                    <Text strong>{item.user}:</Text>
-                                    <Text style={{ marginLeft: 8 }}>
-                                        {item.content}
-                                    </Text>
+                                <List.Item
+                                    style={{ cursor: item.postSlug ? 'pointer' : 'default' }}
+                                    onClick={() => item.postSlug && navigate(`/post/${item.postSlug}`)}
+                                >
+                                    <List.Item.Meta
+                                        avatar={<Avatar src={item.userAvatar} icon={<UserOutlined />} />}
+                                        title={<Text><Text strong>{item.user}</Text> · {item.post}</Text>}
+                                        description={item.content}
+                                    />
                                 </List.Item>
                             )}
                         />

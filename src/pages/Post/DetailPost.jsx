@@ -7,7 +7,8 @@ import {
 import {
     UserOutlined, EyeOutlined, ShareAltOutlined,
     HeartOutlined, HeartFilled, MessageOutlined, MoreOutlined,
-    EditOutlined, DeleteOutlined, UploadOutlined, ExclamationCircleOutlined
+    EditOutlined, DeleteOutlined, UploadOutlined, ExclamationCircleOutlined,
+    GlobalOutlined, LockOutlined
 } from "@ant-design/icons";
 
 import { userAPI } from "../../routes/user.api.jsx";
@@ -187,6 +188,7 @@ const PostDetail = () => {
             setCommentContent("");
             fetchComments();
         } catch (err) {
+            // console.log(err);
             if (err.response?.status === 404) {
                 Modal.warning({
                     title: 'Bài viết không còn khả dụng',
@@ -277,7 +279,23 @@ const PostDetail = () => {
                 const postData = res.data.data || res.data;
                 setPost(postData);
                 if (postData && postData._id) checkUserSavedStatus(postData._id);
-            } catch (error) { message.error("Lỗi tải bài viết"); } finally { setLoading(false); }
+            } catch (error) {
+                // if (err.response?.status === 404) {
+                //     Modal.warning({
+                //         title: 'Bài viết không còn khả dụng',
+                //         content: 'Bài viết này đã bị xóa hoặc chuyển sang chế độ riêng tư bởi tác giả.',
+                //         okText: 'Quay về trang chủ',
+                //         onOk: () => {
+                //             navigate('/');
+                //         }
+                //     });
+                // } else {
+                //     message.error(err.response?.data?.message || "Bạn cần đăng nhập để bình luận");
+                // }
+                message.error("Lỗi tải bài viết");
+            } finally {
+                setLoading(false);
+            }
         };
         fetchPostDetail();
     }, [slug]);
@@ -330,7 +348,18 @@ const PostDetail = () => {
                                         </div>
                                         <Space size={8} style={{ fontSize: 13, color: '#65676b' }}>
                                             <span>{formatDistanceToNow(post.createdAt)} trước</span>
+                                            <span>·</span>
+                                            {post.is_published ? (
+                                                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                                    <GlobalOutlined />
+                                                </span>
+                                            ) : (
+                                                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                                    <LockOutlined />
+                                                </span>
+                                            )}
                                         </Space>
+
                                     </div>
                                 </Space>
 
@@ -421,7 +450,8 @@ const PostDetail = () => {
                                 >
                                     Bình luận
                                 </Button>
-                                <Tooltip title={copied ? "Đã copy" : "Sao chép liên kết"}>
+                                <Tooltip>
+                                    {/* <Tooltip title={copied ? "Đã copy" : "Sao chép liên kết"}> */}
                                     <Button
                                         type="text"
                                         icon={
