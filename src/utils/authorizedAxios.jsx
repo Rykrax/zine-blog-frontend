@@ -2,8 +2,12 @@ import { message } from "antd";
 import axios from "axios";
 import { logoutApi, refreshTokenApi } from "../routes/auth.api";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+console.log("🔗 Backend URL:", backendUrl);
+console.log("📦 All env vars:", import.meta.env);
+
 const instance = axios.create({
-    baseURL: import.meta.env.VITE_BACKEND_URL,
+    baseURL: backendUrl,
     withCredentials: true
 });
 
@@ -33,6 +37,7 @@ instance.interceptors.response.use((response) => {
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     // Do something with response error
     const status = error.response?.status;
+    console.log(error);
     if (status === 401) {
         await logoutApi();
         location.href = '/login';
@@ -40,7 +45,8 @@ instance.interceptors.response.use((response) => {
 
     const originalRequest = error.config;
     // console.log(originalRequest);
-    if (error.response?.status === 410 && !originalRequest._retry) {
+    // 410 = GONE (access token expired, need to refresh)
+    if ((error.response?.status === 410 || status === 401) && !originalRequest._retry) {
         originalRequest._retry = true;
 
         try {
