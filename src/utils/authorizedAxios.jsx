@@ -2,12 +2,8 @@ import { message } from "antd";
 import axios from "axios";
 import { logoutApi, refreshTokenApi } from "../routes/auth.api";
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
-console.log("🔗 Backend URL:", backendUrl);
-console.log("📦 All env vars:", import.meta.env);
-
 const instance = axios.create({
-    baseURL: backendUrl,
+    baseURL: import.meta.env.VITE_BACKEND_URL,
     withCredentials: true
 });
 
@@ -45,8 +41,7 @@ instance.interceptors.response.use((response) => {
 
     const originalRequest = error.config;
     // console.log(originalRequest);
-    // 410 = GONE (access token expired, need to refresh)
-    if ((error.response?.status === 410 || status === 401) && !originalRequest._retry) {
+    if (error.response?.status === 410 && !originalRequest._retry) {
         originalRequest._retry = true;
 
         try {
